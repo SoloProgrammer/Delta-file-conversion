@@ -180,7 +180,7 @@ export default function FileUploader({ onUploadComplete }: FileUploaderProps) {
                 <p className="text-sm text-gray-500">Processing your Excel file...</p>
               </div>
               <div className="space-y-2">
-                <Progress value={uploadProgress} className="w-full" />
+                {/* <Progress value={uploadProgress} className="w-full" /> */}
                 <p className="text-xs text-gray-400">{uploadProgress}% complete</p>
               </div>
             </div>
