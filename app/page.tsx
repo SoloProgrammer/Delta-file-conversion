@@ -15,7 +15,7 @@ export default function Home() {
               <FileSpreadsheet className="w-6 h-6 text-white" />
             </div>
             <div>
-              <h1 className="text-xl font-bold text-gray-900">Excel to JSON</h1>
+              <h1 className="text-xl font-bold text-gray-900">Delta Excel to Entity ZIP's</h1>
               <p className="text-sm text-gray-500">Convert your spreadsheets instantly</p>
             </div>
           </div>
