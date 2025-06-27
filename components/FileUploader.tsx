@@ -2,7 +2,7 @@
 
 import { useCallback, useState } from "react";
 import { useDropzone } from "react-dropzone";
-import { Upload, FileSpreadsheet, CheckCircle, XCircle, Download, Loader2 } from "lucide-react";
+import { Upload, FileSpreadsheet, CheckCircle, XCircle, Download, Loader2, FileArchive } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
@@ -206,13 +206,16 @@ export default function FileUploader({ onUploadComplete }: FileUploaderProps) {
                       <span
                         key={file}
                         onClick={() => downloadZip(file, index + 1)}
-                        className={`flex gap-2 border border-gray-300 p-2 rounded-sm cursor-pointer hover:bg-gray-100 transition-all text-sm ${
+                        className={`flex gap-2 border border-green-600 p-2 rounded-sm cursor-pointer hover:bg-gray-100 transition-all text-sm ${
                           loading === index + 1 && "cursor-progress"
                         }`}
                       >
-                        {file.replace("data/", "")}
+                        <span className="flex gap-2">
+                          <span><FileArchive className="w-4 h-4 text-green-700"/> </span>
+                          {file.replace("data/", "")}
+                        </span>
                         {loading === index + 1 ? (
-                          <Loader2 className="w-4 h-4 text-blue-600 animate-spin" />
+                          <Loader2 className="w-4 h-4 text-green-600 animate-spin" />
                         ) : (
                           <Download className="w-4 h-4" />
                         )}
