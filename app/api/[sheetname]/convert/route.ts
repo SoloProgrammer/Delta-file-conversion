@@ -1,14 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import fs from "fs";
-import { ConvertExcelToJson } from "../helpers/convert";
-import { transformJsonFromFile } from "../helpers/convertjson";
-import { processJsonArray } from "../helpers/GenerateIndividualFilesFromJsonArr";
 import path from "path";
 import AdmZip from "adm-zip";
+import { ConvertExcelToJson } from "../../helpers/convert";
+import { transformJsonFromFile } from "../../helpers/convertjson";
+import { processJsonArray } from "../../helpers/GenerateIndividualFilesFromJsonArr";
 export const dynamic = "force-dynamic";
 
-export async function POST(request: NextRequest) {
+export async function POST(request: NextRequest, { params }: { params: { sheetname: string } }) {
   try {
+    const { sheetname: sheetName } = params;
     const folderPath = path.join(process.cwd(), "data");
 
     if (fs.existsSync(folderPath)) {
@@ -29,11 +30,12 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "No file uploaded" }, { status: 400 });
     }
 
-    process.env.NODE_ENV !== "production" && console.log("📊 File details:", {
-      name: file.name,
-      type: file.type,
-      size: file.size,
-    });
+    process.env.NODE_ENV !== "production" &&
+      console.log("📊 File details:", {
+        name: file.name,
+        type: file.type,
+        size: file.size,
+      });
 
     // Validate file type
     const allowedTypes = [
@@ -82,7 +84,7 @@ export async function POST(request: NextRequest) {
     const excelToJsonFilePath = "data/agentAgenciesDeltaData.json";
 
     // Convert the Excel file to a JSON file
-    await ConvertExcelToJson(file, excelToJsonFilePath);
+    await ConvertExcelToJson(file, excelToJsonFilePath, sheetName);
 
     // Iterate over each output file path configuration
     for (let i = 0; i < entityOutputConfigurations.length; i++) {
@@ -116,6 +118,6 @@ export async function POST(request: NextRequest) {
     console.error("💥 Error converting file:", error);
     console.error("📍 Error stack:", error instanceof Error ? error.stack : "No stack trace");
 
-    return NextResponse.json({ error: "Failed to convert file. Please ensure it's a valid Excel file.", success: false }, { status: 500 });
+    return NextResponse.json({ error: error instanceof Error ? error.message : "Failed to convert file. Please ensure it's a valid Excel file.", success: false }, { status: 500 });
   }
 }

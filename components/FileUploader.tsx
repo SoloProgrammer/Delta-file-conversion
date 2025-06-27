@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { useDropzone } from "react-dropzone";
 import { Upload, FileSpreadsheet, CheckCircle, XCircle, Download, Loader2, FileArchive } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -8,6 +8,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { Input } from "./ui/input";
 
 interface FileUploaderProps {
   onUploadComplete?: (data: any) => void;
@@ -29,55 +30,64 @@ export default function FileUploader({ onUploadComplete }: FileUploaderProps) {
   const [conversionResult, setConversionResult] = useState<ConversionResult | null>(null);
   const [errorMessage, setErrorMessage] = useState<string>("");
   const [loading, setLoading] = useState(0);
+  const [file, setFile] = useState<File | null>(null);
+  const [sheetName, setSheetName] = useState<string>("")
 
   const onDrop = useCallback(
     async (acceptedFiles: File[]) => {
       const file = acceptedFiles[0];
       if (!file) return;
-
-      setUploadStatus("uploading");
-      setUploadProgress(0);
-      setErrorMessage("");
-
-      try {
-        // Simulate upload progress
-        const progressInterval = setInterval(() => {
-          setUploadProgress((prev) => {
-            if (prev >= 90) {
-              clearInterval(progressInterval);
-              return 90;
-            }
-            return prev + 10;
-          });
-        }, 200);
-
-        const formData = new FormData();
-        formData.append("file", file);
-
-        const response = await fetch("/api/convert", {
-          method: "POST",
-          body: formData,
-        });
-
-        clearInterval(progressInterval);
-        setUploadProgress(100);
-
-        const result: ConversionResult = await response.json();
-        if (!response.ok) {
-          throw new Error(result.error || "Failed to convert file");
-        }
-
-        setConversionResult(result);
-        setUploadStatus("success");
-        onUploadComplete?.(result.data);
-      } catch (error) {
-        setUploadStatus("error");
-        setErrorMessage(error instanceof Error ? error.message : "An error occurred");
-        setUploadProgress(0);
-      }
+      setFile(file);
     },
     [onUploadComplete]
   );
+
+  const handleConvert = async () => {
+    if (!file) return;
+
+    setUploadStatus("uploading");
+    setUploadProgress(0);
+    setErrorMessage("");
+
+    try {
+      // Simulate upload progress
+      const progressInterval = setInterval(() => {
+        setUploadProgress((prev) => {
+          if (prev >= 90) {
+            clearInterval(progressInterval);
+            return 90;
+          }
+          return prev + 10;
+        });
+      }, 500);
+
+      const formData = new FormData();
+      formData.append("file", file);
+      const response = await fetch(`/api/${sheetName.trim() || " "}/convert`, {
+        method: "POST",
+        body: formData,
+      });
+
+      clearInterval(progressInterval);
+      setUploadProgress(100);
+
+      const result: ConversionResult = await response.json();
+      if (!response.ok) {
+        throw new Error(result.error || "Failed to convert file");
+      }
+
+      setConversionResult(result);
+      setUploadStatus("success");
+      onUploadComplete?.(result.data);
+    } catch (error) {
+      setUploadStatus("error");
+      setErrorMessage(error instanceof Error ? error.message : "An error occurred");
+      setUploadProgress(0);
+    } finally{
+      setSheetName("")
+      setFile(null);
+    }
+  };
 
   const { getRootProps, getInputProps, isDragActive, isDragReject } = useDropzone({
     onDrop,
@@ -94,6 +104,8 @@ export default function FileUploader({ onUploadComplete }: FileUploaderProps) {
   const resetUploader = () => {
     setUploadStatus("idle");
     setUploadProgress(0);
+    setFile(null)
+    setSheetName("")
     setConversionResult(null);
     setErrorMessage("");
   };
@@ -128,7 +140,7 @@ export default function FileUploader({ onUploadComplete }: FileUploaderProps) {
     <div className="w-full max-w-3xl mx-auto space-y-6">
       <Card className="overflow-hidden">
         <CardContent className="p-0">
-          {uploadStatus === "idle" && (
+          {uploadStatus === "idle" && !file && (
             <div
               {...getRootProps()}
               className={cn(
@@ -170,6 +182,33 @@ export default function FileUploader({ onUploadComplete }: FileUploaderProps) {
             </div>
           )}
 
+          {file && uploadStatus === "idle" && (
+            <form className={cn("border-2 border-dashed rounded-lg p-12 text-center transition-all duration-200")} onSubmit={handleConvert}>
+              <div className="flex justify-center space-x-3 flex-col gap-5">
+                <div className={cn(" rounded-full flex items-center justify-center transition-colors gap-4")}>
+                  <FileSpreadsheet className="w-8 h-8 text-gray-600" />
+                  <h3 className="text-lg font-semibold text-gray-900">File Uploaded</h3>
+                </div>
+                <div className="flex items-center justify-center space-x-2">
+                  <FileSpreadsheet className="w-4 h-4 text-gray-600" />
+                  <span className="text-sm font-medium text-gray-700">{file?.name}</span>
+                </div>
+                <div className="flex items-start flex-col">
+                  <label htmlFor="sheetname">Enter sheet name</label>
+                  <Input onChange={e => setSheetName(e.target.value)} value={sheetName} id="sheetname" placeholder="Sheet 1" required/>
+                </div>
+                <div className="flex gap-4">
+                  <Button type="button" className="flex-1" variant="outline" onClick={() => setFile(null)}>
+                    Upload another
+                  </Button>
+                  <Button className="flex-1" variant="outline" type="submit">
+                    Convert Now
+                  </Button>
+                </div>
+              </div>
+            </form>
+          )}
+
           {uploadStatus === "uploading" && (
             <div className="p-12 text-center space-y-4">
               <div className="w-16 h-16 rounded-full bg-blue-100 flex items-center justify-center mx-auto">
@@ -193,7 +232,7 @@ export default function FileUploader({ onUploadComplete }: FileUploaderProps) {
               </div>
               <div>
                 <h3 className="text-lg font-semibold text-gray-900">Conversion Complete!</h3>
-                <p className="text-sm text-gray-500">Your Excel file has been converted to JSON</p>
+                <p className="text-sm text-gray-500">Your Excel file has been converted to JSON ZIPs</p>
               </div>
               <div className="bg-gray-50 rounded-lg p-4 space-y-2">
                 <div className="flex items-center justify-center space-x-2">
@@ -211,7 +250,9 @@ export default function FileUploader({ onUploadComplete }: FileUploaderProps) {
                         }`}
                       >
                         <span className="flex gap-2">
-                          <span><FileArchive className="w-4 h-4 text-green-700"/> </span>
+                          <span>
+                            <FileArchive className="w-4 h-4 text-green-700" />{" "}
+                          </span>
                           {file.replace("data/", "")}
                         </span>
                         {loading === index + 1 ? (
