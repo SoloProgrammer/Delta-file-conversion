@@ -22,8 +22,6 @@ async function ConvertExcelToJson(file: File, inputFilePath = "", sheetName: str
   // Step 3: Get the worksheet
   const worksheet = workbook.Sheets[sheetName];
 
-  console.log(worksheet, "--------------")
-
   if(!worksheet){
     throw new Error(`Cannot found the sheet with name ${sheetName} in the uploaded Excel file.`)
   }

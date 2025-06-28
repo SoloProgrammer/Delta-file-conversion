@@ -242,8 +242,9 @@ export default function FileUploader({ onUploadComplete }: FileUploaderProps) {
                 <div className="flex justify-center space-x-4 text-xs text-gray-500">
                   {conversionResult.data.map((file, index) => {
                     return (
-                      <span
+                      <button
                         key={file}
+                        disabled={loading !== 0}
                         onClick={() => downloadZip(file, index + 1)}
                         className={`flex gap-2 border border-green-600 p-2 rounded-sm cursor-pointer hover:bg-gray-100 transition-all text-sm ${
                           loading === index + 1 && "cursor-progress"
@@ -260,7 +261,7 @@ export default function FileUploader({ onUploadComplete }: FileUploaderProps) {
                         ) : (
                           <Download className="w-4 h-4" />
                         )}
-                      </span>
+                      </button>
                     );
                   })}
                 </div>

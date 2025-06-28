@@ -14,9 +14,9 @@ export async function POST(request: NextRequest, { params }: { params: { sheetna
 
     if (fs.existsSync(folderPath)) {
       fs.rmSync(folderPath, { recursive: true, force: true });
-      fs.mkdirSync(folderPath); // recreate empty folder if needed
       process.env.NODE_ENV !== "production" && console.log("✅ Folder contents cleared.");
     }
+    fs.mkdirSync(folderPath); // recreate empty folder if needed
     process.env.NODE_ENV !== "production" && console.log("🚀 Starting file conversion process...");
 
     const formData = await request.formData();
@@ -60,9 +60,8 @@ export async function POST(request: NextRequest, { params }: { params: { sheetna
 
     // List of output file paths with associated entity and type information
     const date = new Date();
-    const options = { year: "numeric", month: "2-digit", day: "2-digit" };
-    const formattedDate = new Intl.DateTimeFormat("en-US", options as any).format(date).replace(/\//g, "-");
-    // process.env.NODE_ENV !== "production" && console.log(formattedDate);
+    const options = { year: "numeric", month: "2-digit", day: "2-digit" } as Intl.DateTimeFormatOptions;
+    const formattedDate = new Intl.DateTimeFormat("en-US", options).format(date).replace(/\//g, "-");
     const entityOutputConfigurations = [
       {
         path: "data/AgentTransformed.json",
@@ -104,10 +103,7 @@ export async function POST(request: NextRequest, { params }: { params: { sheetna
 
     const response = {
       success: true,
-      data: [
-        entityOutputConfigurations[0].outputFodlerPathZip.replace("data/", ""),
-        entityOutputConfigurations[1].outputFodlerPathZip.replace("data/", ""),
-      ],
+      data: entityOutputConfigurations.map(config => config.outputFodlerPathZip.replace("data/", "")),
       fileName: file.name,
       folderName: "data",
     };
