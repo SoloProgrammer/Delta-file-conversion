@@ -5,6 +5,7 @@ import AdmZip from "adm-zip";
 import { ConvertExcelToJson } from "../../helpers/convert";
 import { transformJsonFromFile } from "../../helpers/convertjson";
 import { processJsonArray } from "../../helpers/GenerateIndividualFilesFromJsonArr";
+import { UPLOAD_FILE_SIZE } from "@/constants/variables";
 export const dynamic = "force-dynamic";
 
 export async function POST(request: NextRequest, { params }: { params: { sheetname: string } }) {
@@ -51,7 +52,7 @@ export async function POST(request: NextRequest, { params }: { params: { sheetna
     process.env.NODE_ENV !== "production" && console.log("✅ File type validation passed");
 
     // Check file size (10MB limit)
-    const maxSize = 10 * 1024 * 1024; // 10MB
+    const maxSize = UPLOAD_FILE_SIZE;
     if (file.size > maxSize) {
       process.env.NODE_ENV !== "production" && console.log("❌ File size too large:", file.size, "bytes");
       return NextResponse.json({ error: "File size too large. Maximum size is 10MB." }, { status: 400 });
@@ -103,7 +104,7 @@ export async function POST(request: NextRequest, { params }: { params: { sheetna
 
     const response = {
       success: true,
-      data: entityOutputConfigurations.map(config => config.outputFodlerPathZip.replace("data/", "")),
+      data: entityOutputConfigurations.map((config) => config.outputFodlerPathZip.replace("data/", "")),
       fileName: file.name,
       folderName: "data",
     };
@@ -114,6 +115,9 @@ export async function POST(request: NextRequest, { params }: { params: { sheetna
     console.error("💥 Error converting file:", error);
     console.error("📍 Error stack:", error instanceof Error ? error.stack : "No stack trace");
 
-    return NextResponse.json({ error: error instanceof Error ? error.message : "Failed to convert file. Please ensure it's a valid Excel file.", success: false }, { status: 500 });
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : "Failed to convert file. Please ensure it's a valid Excel file.", success: false },
+      { status: 500 }
+    );
   }
 }

@@ -9,6 +9,7 @@ import { Progress } from "@/components/ui/progress";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { Input } from "./ui/input";
+import { UPLOAD_FILE_SIZE } from "@/constants/variables";
 
 interface FileUploaderProps {
   onUploadComplete?: (data: any) => void;
@@ -97,7 +98,7 @@ export default function FileUploader({ onUploadComplete }: FileUploaderProps) {
       "text/csv": [".csv"],
     },
     maxFiles: 1,
-    maxSize: 10 * 1024 * 1024, // 10MB
+    maxSize: UPLOAD_FILE_SIZE,
     disabled: uploadStatus === "uploading",
   });
 
